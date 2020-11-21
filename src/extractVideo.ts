@@ -23,6 +23,21 @@ const extractVideoId = (stringContainingId: string) => {
     return match[1];
 }
 
+const extractVideoConfig = (html: string) => {
+    const videoConfigRegex = /ytplayer\.config\s?=\s?({.*?});/;
+
+    const match = html.match(videoConfigRegex);
+
+    if (match === null) {
+        throw new ExtractionError('Unable to extract video config');
+    }
+
+    return JSON.parse(match[1], (key, value) => (key === 'player_response') ? JSON.parse(value) : value);
+} 
+
 export default async function extractVideo(stringContainingId: string) {
     const videoId = extractVideoId(stringContainingId);
+    const html = await fetch(`https://www.youtube.com/watch?v=${videoId}`)
+        .then(res => res.text());
+    const config = extractVideoConfig(html);
 }
