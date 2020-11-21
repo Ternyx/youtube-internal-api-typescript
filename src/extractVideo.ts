@@ -32,7 +32,18 @@ const extractVideoConfig = (html: string) => {
         throw new ExtractionError('Unable to extract video config');
     }
 
-    return JSON.parse(match[1], (key, value) => (key === 'player_response') ? JSON.parse(value) : value);
+    const jsonFilters = new Set([
+        'attestation',
+        'auxiliaryUi',
+        'microformat',
+        'playbackTracking',
+        'responseContext',
+        'storyboards',
+        'videoQualityPromoSupportedRenderers'
+    ]);
+
+    return JSON.parse(match[1], (key, value) => (key === 'player_response') 
+        ? JSON.parse(value, (key, value) => (jsonFilters.has(key) ? undefined : value)) : value);
 } 
 
 export default async function extractVideo(stringContainingId: string) {
