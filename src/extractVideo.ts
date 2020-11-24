@@ -1,4 +1,5 @@
 import fetch from 'node-fetch';
+import YoutubePlayerConfig from './types/youtubePlayerConfig';
 
 class ExtractionError extends Error {
     public name = 'ExtractionError';
@@ -21,8 +22,7 @@ const extractVideoId = (stringContainingId: string) => {
     } 
 
     return match[1];
-}
-
+} 
 const extractVideoConfig = (html: string) => {
     const videoConfigRegex = /ytplayer\.config\s?=\s?({.*?});/;
 
@@ -42,8 +42,12 @@ const extractVideoConfig = (html: string) => {
         'videoQualityPromoSupportedRenderers'
     ]);
 
-    return JSON.parse(match[1], (key, value) => (key === 'player_response') 
-        ? JSON.parse(value, (key, value) => (jsonFilters.has(key) ? undefined : value)) : value);
+    const playerResponseReviver = (key: any, value: any) => (jsonFilters.has(key)) ? undefined : value;
+
+    const videoConfig = JSON.parse(match[1]);
+    videoConfig.args.player_response = JSON.parse(videoConfig.args.player_response, playerResponseReviver);
+
+    return videoConfig as YoutubePlayerConfig;
 } 
 
 export default async function extractVideo(stringContainingId: string) {
@@ -52,3 +56,4 @@ export default async function extractVideo(stringContainingId: string) {
         .then(res => res.text());
     const config = extractVideoConfig(html);
 }
+
