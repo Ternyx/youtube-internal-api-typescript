@@ -1,5 +1,6 @@
 import fetch from 'node-fetch';
 import YoutubePlayerConfig from './types/youtubePlayerConfig';
+import { matchRegexes } from './utils/regex';
 
 class ExtractionError extends Error {
     public name = 'ExtractionError';
@@ -10,12 +11,12 @@ class ExtractionError extends Error {
 
 const extractVideoId = (stringContainingId: string) => {
     const videoIdRegex = `[0-9A-Za-z_-]{10}[048AEIMQUYcgkosw]`;
-    const completeVideoIdRegex = [
+    const regexes = [
         `^(?:https?://)(?:www\\.?)?(?:m\\.?)?youtube\.com/.*v=(${videoIdRegex})`, // from url
         `^(${videoIdRegex})$` // just id
-    ].join('|');
+    ];
 
-    const match = stringContainingId.match(completeVideoIdRegex);
+    const match = matchRegexes(stringContainingId, regexes, { returnOnFirstMatch: true });
 
     if (match === null) {
         throw new ExtractionError('Unable to extract videoId');
@@ -55,5 +56,6 @@ export default async function extractVideo(stringContainingId: string) {
     const html = await fetch(`https://www.youtube.com/watch?v=${videoId}`)
         .then(res => res.text());
     const config = extractPlayerConfig(html);
+    console.log(JSON.stringify(config, null, 2));
 }
 
