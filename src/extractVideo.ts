@@ -33,20 +33,8 @@ const extractPlayerConfig = (html: string) => {
         throw new ExtractionError('Unable to extract video config');
     }
 
-    const jsonFilters = new Set([
-        'attestation',
-        'auxiliaryUi',
-        'microformat',
-        'playbackTracking',
-        'responseContext',
-        'storyboards',
-        'videoQualityPromoSupportedRenderers'
-    ]);
-
-    const playerResponseReviver = (key: any, value: any) => (jsonFilters.has(key)) ? undefined : value;
-
     const playerConfig = JSON.parse(match[1]);
-    playerConfig.args.player_response = JSON.parse(playerConfig.args.player_response, playerResponseReviver);
+    playerConfig.args.player_response = JSON.parse(playerConfig.args.player_response);
 
     return playerConfig as YoutubePlayerConfig;
 } 
