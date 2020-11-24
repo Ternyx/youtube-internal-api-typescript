@@ -24,7 +24,7 @@ const extractVideoId = (stringContainingId: string) => {
     return match[1];
 } 
 const extractVideoConfig = (html: string) => {
-    const videoConfigRegex = /ytplayer\.config\s?=\s?({.*?});/;
+    const videoConfigRegex = /ytplayer\.config\s?=\s?({.+?});ytplayer/;
 
     const match = html.match(videoConfigRegex);
 
