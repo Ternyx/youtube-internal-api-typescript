@@ -1,6 +1,7 @@
 import fetch from 'node-fetch';
-import extractVideo from './extractVideo';
+import VideoExtractor from './video/videoExtractor';
 
 (async () => {
-    await extractVideo('https://www.youtube.com/watch?v=iJrpfUG5rKc');
+    const url = 'UxxajLWwzqY';
+    new VideoExtractor().extractVideo(url);
 })();
