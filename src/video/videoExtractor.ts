@@ -1,5 +1,5 @@
 import fetch from 'node-fetch';
-import YoutubePlayerConfig from '../types/youtubePlayerConfig';
+import YoutubePlayerConfig from './types/youtubePlayerConfig';
 import { matchRegexes } from '../utils/regex';
 
 export class ExtractionError extends Error {
