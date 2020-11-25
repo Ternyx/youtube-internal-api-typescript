@@ -1,5 +1,5 @@
 import fetch from 'node-fetch';
-import YoutubePlayerConfig from './types/youtubePlayerConfig';
+import YoutubePlayerConfig , { StreamingData } from './types/youtubePlayerConfig';
 import { matchRegexes } from '../utils/regex';
 
 export class ExtractionError extends Error {
@@ -9,9 +9,9 @@ export class ExtractionError extends Error {
     }
 }
 
-export interface ParsingOptions {
+export interface StreamingDataExtractionOptions {
     formatOptions?: FormatOptions;
-    skipParsingIfLivestream?: boolean;
+    skipExtractionIfLivestream?: boolean;
     filterUnusableFormats?: boolean;
 }
 
@@ -22,29 +22,29 @@ export interface FormatOptions {
 }
 
 export interface VideoExtractorOptions {
-    parsingOptions?: ParsingOptions;
+    streamingDataExtractionOptions?: StreamingDataExtractionOptions;
 }
 
 export default class VideoExtractor {
-    private parsingOptions: ParsingOptions;
+    private streamingDataExtractionOptions: StreamingDataExtractionOptions;
 
     constructor(options?: VideoExtractorOptions) {
-        const { parsingOptions } = Object.assign({
-            parsingOptions: {
+        const { streamingDataExtractionOptions } = Object.assign({
+            streamingDataExtractionOptions: {
                 formatOptions: {
                     formats: true,
                     adaptiveFormats: true,
                     dashFormats: true
                 },
-                skipParsingIfLivestream: true,
+                skipExtractionIfLivestream: true,
                 filterUnusableFormats: true
             },
         }, options);
-
-        this.parsingOptions = parsingOptions;
+        
+        this.streamingDataExtractionOptions = streamingDataExtractionOptions;
     }
 
-    async extractVideo(stringContainingId: string, parsingOptions?: ParsingOptions) {
+    async extractVideo(stringContainingId: string, streamingDataExtractionOptions?: StreamingDataExtractionOptions) {
         const videoId = VideoExtractor.extractVideoId(stringContainingId);
         const html = await fetch(`https://www.youtube.com/watch?v=${videoId}`)
             .then(res => res.text());
