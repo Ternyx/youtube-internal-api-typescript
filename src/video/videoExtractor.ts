@@ -45,13 +45,13 @@ export default class VideoExtractor {
     }
 
     async extractVideo(stringContainingId: string, parsingOptions?: ParsingOptions) {
-        const videoId = this.extractVideoId(stringContainingId);
+        const videoId = VideoExtractor.extractVideoId(stringContainingId);
         const html = await fetch(`https://www.youtube.com/watch?v=${videoId}`)
             .then(res => res.text());
-        const config = this.extractPlayerConfig(html);
+        const config = VideoExtractor.extractPlayerConfig(html);
     }
 
-    protected extractVideoId(stringContainingId: string) {
+    protected static extractVideoId(stringContainingId: string) {
         const videoIdRegex = `[0-9A-Za-z_-]{10}[048AEIMQUYcgkosw]`;
         const regexes = [
             `^(?:https?://)(?:www\\.?)?(?:m\\.?)?youtube\.com/.*v=(${videoIdRegex})`, // from url
@@ -67,7 +67,7 @@ export default class VideoExtractor {
         return match[1];
     }
 
-    protected extractPlayerConfig(html: string) {
+    protected static extractPlayerConfig(html: string) {
         const playerConfigRegex = /ytplayer\.config\s?=\s?({.+?});ytplayer/;
 
         const match = html.match(playerConfigRegex);
