@@ -5,7 +5,7 @@ interface RegexArrayOptions {
 export function matchRegexes(target: string, regexes: RegExp[] | string[], options?: RegexArrayOptions): any {
     const { returnOnFirstMatch = false } = options;
 
-    let hasSuccesfulMatch = false;
+    let hasSuccessfulMatch = false;
     let matches: (RegExpMatchArray|null)[] = [];
 
     for (let regex of regexes) {
@@ -14,12 +14,12 @@ export function matchRegexes(target: string, regexes: RegExp[] | string[], optio
             if (returnOnFirstMatch) {
                 return match;
             }
-            hasSuccesfulMatch = true;
+            hasSuccessfulMatch = true;
         }
         matches.push(match);
     }
 
-    if (!hasSuccesfulMatch) {
+    if (!hasSuccessfulMatch) {
         return null;
     }
 
