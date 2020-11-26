@@ -1,19 +1,6 @@
 import { matchRegexes } from '../utils/regex';
 import escapeStringRegexp from 'escape-string-regexp';
-
-export interface TransformFunction {
-    var: string,
-    name: string,
-    arg: number
-}
-
-export type CipherFunctionObj = { [name: string]: CipherFunction };
-
-export interface SignatureDecoder {
-    transformFunctions: TransformFunction[];
-    cipherFunctions: CipherFunctionObj;
-};
-
+import SignatureDecoder, { CipherFunction, CipherFunctionObj } from './signatureDecoder';
 
 export class SignatureDecoderExtractionError extends Error {
     public name = 'SignatureDecoderExtractionError ';
@@ -36,7 +23,6 @@ const FUNCTION_PATTERNS = [
     /\bc\s*&&\s*[a-zA-Z0-9]+\.set\([^,]+\s*,\s*\([^)]*\)\s*\(\s*([a-zA-Z0-9$]+)\(/
 ];
 
-export type CipherFunction = (charArr: string[], arg: number) => string[];
 const CIPHER_FUNCTIONS: Array<[RegExp, CipherFunction]> = [
     [/\{\w\.reverse\(\)\}/, charArr => charArr.reverse()],
     [/\{\w\.splice\(0,\w\)\}/, (charArr, delCount) => {
@@ -84,7 +70,7 @@ export default class SignatureDecoderExtractor {
     private signatureDecodeCache: Map<string, SignatureDecoder>;
 
     constructor(options: SignatureDecoderExtractorOptions) { 
-        const { getBaseJs, functionPatterns, cipherFunctions, signatureDecodeCache } = Object.assign({
+        const { getBaseJs, functionPatterns, cipherFunctions, signatureDecodeCache } = Object.assign({}, {
             functionPatterns: FUNCTION_PATTERNS,
             cipherFunctions: CIPHER_FUNCTIONS,
             signatureDecodeCache: new Map<string, SignatureDecoder>()
@@ -119,14 +105,11 @@ export default class SignatureDecoderExtractor {
 
         const cipherFunctions = this.extractCipherFunctions(transformFunctions[0].var, baseJs);
 
-        const decodeObj = {
-            transformFunctions,
-            cipherFunctions
-        };
+        const signatureDecoder = new SignatureDecoder(transformFunctions, cipherFunctions);
 
-        this.signatureDecodeCache.set(baseJsUrl, decodeObj);
+        this.signatureDecodeCache.set(baseJsUrl, signatureDecoder);
 
-        return decodeObj;
+        return signatureDecoder;
     }
 
     protected getSigFunctionName(baseJs: string) {
