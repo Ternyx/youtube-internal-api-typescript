@@ -207,7 +207,7 @@ export default class VideoExtractor {
     protected static extractVideoId(stringContainingId: string) {
         const videoIdRegex = `[0-9A-Za-z_-]{10}[048AEIMQUYcgkosw]`;
         const regexes = [
-            `^(?:https?://)(?:www\\.?)?(?:m\\.?)?youtube\.com/.*v=(${videoIdRegex})`, // from url
+            `^(?:https?://)(?:www\\.?)?(?:m\\.?)?youtube\.com/.*?v=(${videoIdRegex})`, // from url
             `^(${videoIdRegex})$` // just id
         ];
 
