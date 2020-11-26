@@ -18,6 +18,7 @@
   },
   "dependencies": {
     "escape-string-regexp": "^4.0.0",
-    "node-fetch": "^2.6.1"
+    "node-fetch": "^2.6.1",
+    "p-memoize": "^4.0.1"
   }
 }
