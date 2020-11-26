@@ -1,5 +1,5 @@
 import fetch from 'node-fetch';
-import YoutubePlayerConfig, { Format, AdaptiveFormat, StreamingData, PlayerResponse } from './types/youtubePlayerConfig';
+import { Format, AdaptiveFormat, StreamingData, PlayerResponse } from './types/youtubePlayerConfig';
 import SignatureDecoderExtractor from './signatureDecoderExtractor';
 import SignatureDecoder from './signatureDecoder';
 import pMemoize from 'p-memoize';
@@ -9,6 +9,13 @@ export class ExtractionError extends Error {
     public name = 'ExtractionError';
     constructor(message: string) {
         super(message);
+    }
+}
+
+export class PlayabilityError extends Error {
+    name = 'PlayabilityError';
+    constructor(readonly playabilityStatus: PlayabilityStatus) {
+        super(playabilityStatus.reason);
     }
 }
 
@@ -23,6 +30,11 @@ export interface FormatOptions {
     adaptiveFormats?: boolean;
     //dashFormats?: boolean;
 }
+
+export interface PlayabilityStatus {
+    status: string;
+    reason: string;
+};
 
 export interface VideoExtractorOptions {
     streamingDataExtractionOptions?: StreamingDataExtractionOptions;
@@ -208,6 +220,19 @@ export default class VideoExtractor {
         return match[1];
     }
 
+    protected static extractPlayabilityStatus(html: string): PlayabilityStatus {
+        const match = html.match(/playabilityStatus":{.*?(?:"status":"(.*?)").*?(?:"reason":"(.*?)")/);
+
+        if (!match) {
+            throw new ExtractionError("Couldn't extract playabilityStatus")
+        }
+
+        return {
+            status: match[1],
+            reason: match[2]
+        }
+    }
+
     protected static extractPlayerConfig(html: string): PlayerResponse {
         const playerConfigRegexes = [
             /;ytplayer\.config\s?=\s?({.+?});ytplayer/,
@@ -225,7 +250,9 @@ export default class VideoExtractor {
         }
 
         if (match === null) {
-            throw new ExtractionError('Unable to extract video config');
+            const playabilityStatus = VideoExtractor.extractPlayabilityStatus(html);
+            throw new PlayabilityError(playabilityStatus);
+            //throw new ExtractionError('Unable to extract video config');
         }
 
         const json = JSON.parse(match[1]);
