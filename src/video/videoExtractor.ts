@@ -237,14 +237,14 @@ export default class VideoExtractor {
         const playerConfigRegexes = [
             /;ytplayer\.config\s?=\s?({.+?});ytplayer/,
             /;ytplayer\.config\s?=\s?({.+?});/,
-            /var ytInitialPlayerResponse\s?=\s?({.+?});/
+            /var ytInitialPlayerResponse\s?=\s?({.+?});<\/script>/
         ];
 
         let i: number;
         let match: RegExpMatchArray;
         for (i = 0; i < playerConfigRegexes.length; i++) {
             match = html.match(playerConfigRegexes[i]);
-            if (match) {
+            if (match !== null) {
                 break;
             }
         }
