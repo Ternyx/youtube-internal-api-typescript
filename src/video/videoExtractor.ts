@@ -1,9 +1,13 @@
 import fetch from 'node-fetch';
+import pMemoize from 'p-memoize';
+import regExpExecWithIndices from 'regexp-match-indices';
+    regExpExecWithIndices.config.mode = 'spec-compliant';
+
+import { findEndingJsonBracket } from '../utils/json';
 import { Format, AdaptiveFormat, StreamingData, PlayerResponse } from './types/youtubePlayerConfig';
+import { matchRegexes } from '../utils/regex';
 import SignatureDecoderExtractor from './signatureDecoderExtractor';
 import SignatureDecoder from './signatureDecoder';
-import pMemoize from 'p-memoize';
-import { matchRegexes } from '../utils/regex';
 
 export class ExtractionError extends Error {
     public name = 'ExtractionError';
@@ -234,34 +238,35 @@ export default class VideoExtractor {
     }
 
     protected static extractPlayerConfig(html: string): PlayerResponse {
-        const playerConfigRegexes = [
-            /;ytplayer\.config\s?=\s?({.+?});ytplayer/,
-            /;ytplayer\.config\s?=\s?({.+?});/,
-            /var ytInitialPlayerResponse\s?=\s?({.+?});<\/script>/
+        const playerConfigRegexes: Array<[RegExp, (json: any) => PlayerResponse]> = [
+            [/;ytplayer\.config\s?=\s?({.+?});/, (json: any) => {
+                json.args.player_response = JSON.parse(json.args.player_response);
+                return json.args.player_response as PlayerResponse;
+            }],
+            [/var\sytInitialPlayerResponse\s?=\s?({.+?});/, (json: any) => json as PlayerResponse ]
         ];
 
-        let i: number;
-        let match: RegExpMatchArray;
-        for (i = 0; i < playerConfigRegexes.length; i++) {
-            match = html.match(playerConfigRegexes[i]);
-            if (match !== null) {
-                break;
+        for (let [regex, transformFunc] of playerConfigRegexes) {
+            const match = regExpExecWithIndices(regex, html);
+            if (match === null) {
+                continue;
             }
+
+            const [startIndex] = match.indices[1];
+            const endIndex = findEndingJsonBracket(html, startIndex);
+
+            if (endIndex === -1) {
+                throw new ExtractionError(`Coudln't find the json end index, regex: ${regex}`);
+            } 
+
+            const jsonText = html.substring(startIndex, endIndex + 1);
+            const json = JSON.parse(jsonText);
+            return transformFunc(json);
         }
 
-        if (match === null) {
-            const playabilityStatus = VideoExtractor.extractPlayabilityStatus(html);
-            throw new PlayabilityError(playabilityStatus);
-            //throw new ExtractionError('Unable to extract video config');
-        }
-
-        const json = JSON.parse(match[1]);
-        if (i < 2) {
-            json.args.player_response = JSON.parse(json.args.player_response);
-            return json.args.player_response as PlayerResponse;
-        } else {
-            return json as PlayerResponse;
-        }
+        const playabilityStatus = VideoExtractor.extractPlayabilityStatus(html);
+        throw new PlayabilityError(playabilityStatus);
+        //throw new ExtractionError('Unable to extract video config');
     }
 }
 
