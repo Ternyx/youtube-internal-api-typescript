@@ -21,7 +21,7 @@ export interface StreamingDataExtractionOptions {
 export interface FormatOptions {
     formats?: boolean;
     adaptiveFormats?: boolean;
-    dashFormats?: boolean;
+    //dashFormats?: boolean;
 }
 
 export interface VideoExtractorOptions {
@@ -30,7 +30,7 @@ export interface VideoExtractorOptions {
 }
 
 interface ExtractStreamingDataHelperOptions<T> {
-    arg: T;
+    arg: T | undefined;
     extractFunc: (arg: T) => any;
     options: boolean;
 }
@@ -51,7 +51,7 @@ export default class VideoExtractor {
                 formatOptions: {
                     formats: true,
                     adaptiveFormats: true,
-                    dashFormats: true
+                    //dashFormats: true
                 },
                 skipExtractionIfLivestream: true,
                 filterUnusableFormats: true
@@ -70,7 +70,11 @@ export default class VideoExtractor {
             .then(res => res.text());
         const playerResponse = VideoExtractor.extractPlayerConfig(html);
         const newStreamingData = await this.extractStreamingData({ html, playerResponse, streamingDataExtractionOptions });
-        console.log(newStreamingData);
+
+        return {
+            ...playerResponse,
+            streamingData: newStreamingData
+        }
     }
 
     protected async extractStreamingData({ html, playerResponse, streamingDataExtractionOptions }: ExtractStreamingData) {
@@ -95,10 +99,10 @@ export default class VideoExtractor {
         const { 
             formats: decipherFormats,
             adaptiveFormats: decipherAdaptiveFormats,
-            dashFormats: decipherDashFormats
+            //dashFormats: decipherDashFormats
         } = formatOptions;
 
-        const [ formats, adaptiveFormats, dashFormats ] = await Promise.all([
+        const [ formats, adaptiveFormats ] = await Promise.all([
             this.extractStreamingDataHelper({
                 arg: streamingData.formats,
                 extractFunc: async (format) => await this.decipherFormats(format, getDecoder),
@@ -109,19 +113,18 @@ export default class VideoExtractor {
                 extractFunc: async (format) => await this.decipherFormats(format, getDecoder),
                 options: decipherAdaptiveFormats,
             }),
-            this.extractStreamingDataHelper({
-                arg: streamingData.dashManifestUrl,
-                // TODO extract dash formats
-                extractFunc: async (url) => url,
-                options: decipherDashFormats,
-            }),
+            // no dash for now since I can't find a video that actually uses dash
+            //this.extractStreamingDataHelper({
+                //arg: streamingData.dashManifestUrl,
+                //extractFunc: (url) => url, 
+                //options: false,
+            //}),
         ]);
 
         return {
             ...streamingData,
             formats,
-            adaptiveFormats,
-            dashFormats
+            adaptiveFormats
         }
     }
 
@@ -130,20 +133,24 @@ export default class VideoExtractor {
         extractFunc,
         options
     }: ExtractStreamingDataHelperOptions<T>) {
-        if (!options || !arg) {
+        if (!options || arg === undefined) {
             return arg;
         }
         return await extractFunc(arg);
     }
 
     protected async decipherFormats(formats: Format[] | AdaptiveFormat[], getDecoder: () => Promise<SignatureDecoder>) {
+        if (formats === undefined) {
+            return undefined;
+        }
+
         const decoded = [];
         const ciphered = [];
 
         for (let format of formats) {
             if (format.signatureCipher) {
                 const unparsed = Object.fromEntries(format.signatureCipher.split('&').map((pair: string) => pair.split('=')));
-                Object.assign(format, unparsed);
+                format = Object.assign({}, format, unparsed);
             }
 
             format.url = decodeURIComponent(format.url);
@@ -158,17 +165,18 @@ export default class VideoExtractor {
             ciphered.push(format);
         }
         
-        let cipheredDecoded;
         if (ciphered.length !== 0) {
             const signatureDecoder = await getDecoder();
 
-            cipheredDecoded = ciphered.map(({ s, url, ...rest }) => ({
+            const cipheredDecoded = ciphered.map(({ s, url, ...rest }) => ({
                 ...rest,
                 url: url + '&sig=' + signatureDecoder.decode(s)
             }));
+
+            return [...decoded, ...cipheredDecoded];
         }
 
-        return [...decoded, ...cipheredDecoded];
+        return decoded;
     }
 
     protected async fetchBaseJs(baseJsUrl: string) {

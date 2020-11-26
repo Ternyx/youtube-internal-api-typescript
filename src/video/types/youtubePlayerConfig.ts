@@ -86,9 +86,9 @@ export interface AdaptiveFormat {
 
 export interface StreamingData {
     expiresInSeconds: string;
-    formats: Format[];
-    adaptiveFormats: AdaptiveFormat[];
-    dashManifestUrl: string;
+    formats?: Format[];
+    adaptiveFormats?: AdaptiveFormat[];
+    dashManifestUrl?: string;
 }
 
 export interface PlayerCaptionsRenderer {
