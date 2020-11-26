@@ -5,17 +5,21 @@ interface RegexArrayOptions {
 export function matchRegexes(target: string, regexes: RegExp[] | string[], options?: RegexArrayOptions): any {
     const { returnOnFirstMatch = false } = options;
 
+    let hasSuccesfulMatch = false;
     let matches: (RegExpMatchArray|null)[] = [];
 
     for (let regex of regexes) {
         const match = target.match(regex);
-        if (match !== null && returnOnFirstMatch) {
-            return match;
+        if (match !== null) {
+            if (returnOnFirstMatch) {
+                return match;
+            }
+            hasSuccesfulMatch = true;
         }
         matches.push(match);
     }
 
-    if (matches.length === 0) {
+    if (!hasSuccesfulMatch) {
         return null;
     }
 
