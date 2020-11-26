@@ -37,6 +37,8 @@ export interface Format {
     approxDurationMs: string;
     audioSampleRate: string;
     audioChannels: number;
+    signatureCipher?: any;
+    s?: string;
 }
 
 export interface InitRange {
@@ -78,13 +80,15 @@ export interface AdaptiveFormat {
     audioSampleRate: string;
     audioChannels?: number;
     loudnessDb?: number;
+    signatureCipher?: any;
+    s?: string;
 }
 
 export interface StreamingData {
     expiresInSeconds: string;
     formats: Format[];
     adaptiveFormats: AdaptiveFormat[];
-    dashFormats: string;
+    dashManifestUrl: string;
 }
 
 export interface PlayerCaptionsRenderer {
@@ -156,6 +160,7 @@ export interface VideoDetails {
     isPrivate: boolean;
     isUnpluggedCorpus: boolean;
     isLiveContent: boolean;
+    isLive?: boolean;
 }
 
 export interface AudioConfig {
