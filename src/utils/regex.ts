@@ -25,3 +25,20 @@ export function matchRegexes(target: string, regexes: RegExp[] | string[], optio
 
     return matches;
 }
+
+interface ApplyRegexOptions {
+    string: string;
+    regex: RegExp;
+    onError: () => never;
+    matchIndex?: number;
+}
+
+export function applyRegex({ string, regex, onError, matchIndex = 1 }: ApplyRegexOptions): string {
+    const match = string.match(regex);
+
+    if (match !== null) {
+        return match[matchIndex];
+    } 
+
+    onError();
+}
