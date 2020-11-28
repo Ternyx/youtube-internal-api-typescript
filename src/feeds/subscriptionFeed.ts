@@ -1,16 +1,15 @@
 import FeedExtractor, { ParserResponse } from "./feedExtractor";
 import User from '../user';
 import nodeFetch from 'node-fetch';
+import { SubscriptionFeedResponse } from './types/subscriptionFeedResponse';
 
-interface SubscriptionFeedOptions {
+export interface SubscriptionFeedOptions {
     user: User;
     findInitialDataFromHtml?: boolean;
     fetch?: typeof nodeFetch;
 }
 
-
-// TODO proper response types
-export default class SubscriptionFeed extends FeedExtractor<any> {
+export default class SubscriptionFeed<T extends SubscriptionFeedResponse> extends FeedExtractor<T> {
     constructor(options: SubscriptionFeedOptions) {
         super({
             baseUrl: 'https://www.youtube.com/feed/subscriptions?flow=1',
@@ -18,7 +17,7 @@ export default class SubscriptionFeed extends FeedExtractor<any> {
         });
     }
 
-    parse(text: string, iteration?: number): ParserResponse<any> {
+    parse(text: string, iteration?: number): ParserResponse<T> {
         const json = JSON.parse(text);
         let res;
 
