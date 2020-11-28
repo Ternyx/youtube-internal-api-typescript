@@ -18,6 +18,7 @@ interface FeedExtractorOptions {
     user: User;
     findInitialDataFromHtml?: boolean;
     fetch?: typeof nodeFetch;
+    headers?: {[key: string]: string | number};
 }
 
 export default abstract class FeedExtractor<T> {
@@ -26,17 +27,18 @@ export default abstract class FeedExtractor<T> {
     private _fetch: typeof nodeFetch;
     private user: User;
 
-    protected headers: { [key: string]: string } = {  };
+    protected headers: { [key: string]: string | number } = {  };
     protected baseUrl: string;
     protected findInitialDataFromHtml: boolean;
 
     public content: T[] = [];
 
-    constructor({ baseUrl, user, findInitialDataFromHtml = true, fetch = nodeFetch }: FeedExtractorOptions) {
+    constructor({ baseUrl, user, findInitialDataFromHtml = true, fetch = nodeFetch, headers }: FeedExtractorOptions) {
         this.baseUrl = baseUrl;
         this.user = user;
         this.findInitialDataFromHtml = findInitialDataFromHtml;
         this._fetch = fetch;
+        this.headers = { ...this.headers, headers };
     }
 
     abstract parse(text: string, iteration ?: number): ParserResponse<T>;
