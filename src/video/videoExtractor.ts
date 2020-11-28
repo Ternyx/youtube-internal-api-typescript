@@ -8,6 +8,7 @@ import { Format, AdaptiveFormat, StreamingData, PlayerResponse } from './types/y
 import { matchRegexes } from '../utils/regex';
 import SignatureDecoderExtractor from './signatureDecoderExtractor';
 import SignatureDecoder from './signatureDecoder';
+import User from '../user';
 
 export class ExtractionError extends Error {
     public name = 'ExtractionError';
@@ -43,6 +44,7 @@ export interface PlayabilityStatus {
 export interface VideoExtractorOptions {
     streamingDataExtractionOptions?: StreamingDataExtractionOptions;
     signatureDecoderExtractor?: SignatureDecoderExtractor;
+    user?: User;
 }
 
 interface ExtractStreamingDataHelperOptions<T> {
@@ -60,9 +62,10 @@ interface ExtractStreamingData {
 export default class VideoExtractor {
     private streamingDataExtractionOptions: StreamingDataExtractionOptions;
     private signatureDecoderExtractor: SignatureDecoderExtractor;
+    private user: User;
 
     constructor(options?: VideoExtractorOptions) {
-        const { streamingDataExtractionOptions, signatureDecoderExtractor } = Object.assign({}, {
+        const { streamingDataExtractionOptions, signatureDecoderExtractor, user } = Object.assign({}, {
             streamingDataExtractionOptions: {
                 formatOptions: {
                     formats: true,
@@ -78,11 +81,12 @@ export default class VideoExtractor {
         this.signatureDecoderExtractor = signatureDecoderExtractor ?? new SignatureDecoderExtractor({
             getBaseJs: pMemoize<string[], string, string>(this.fetchBaseJs)
         });
+        this.user = user;
     }
 
     async extractVideo(stringContainingId: string, streamingDataExtractionOptions?: StreamingDataExtractionOptions) {
         const videoId = VideoExtractor.extractVideoId(stringContainingId);
-        const html = await fetch(`https://www.youtube.com/watch?v=${videoId}`)
+        const html = await fetch(`https://www.youtube.com/watch?v=${videoId}`, { headers: this.getHeaders() })
             .then(res => res.text());
         const playerResponse = VideoExtractor.extractPlayerConfig(html);
         const newStreamingData = await this.extractStreamingData({ html, playerResponse, streamingDataExtractionOptions });
@@ -91,6 +95,10 @@ export default class VideoExtractor {
             ...playerResponse,
             streamingData: newStreamingData
         }
+    }
+
+    private getHeaders() {
+        return (this.user !== undefined) ? this.user.headers : {};
     }
 
     protected async extractStreamingData({ html, playerResponse, streamingDataExtractionOptions }: ExtractStreamingData) {
@@ -196,7 +204,7 @@ export default class VideoExtractor {
     }
 
     protected async fetchBaseJs(baseJsUrl: string) {
-        return fetch(baseJsUrl).then(res => res.text());
+        return fetch(baseJsUrl, { headers: this.getHeaders() }).then(res => res.text());
     }
 
     protected static extractJsBaseUrl(html: string) {
