@@ -18,7 +18,7 @@ interface FeedExtractorOptions {
     user: User;
     findInitialDataFromHtml?: boolean;
     fetch?: typeof nodeFetch;
-    headers?: {[key: string]: string | number};
+    headers?: {[key: string]: string };
 }
 
 export default abstract class FeedExtractor<T> {
@@ -27,7 +27,10 @@ export default abstract class FeedExtractor<T> {
     private _fetch: typeof nodeFetch;
     private user: User;
 
-    protected headers: { [key: string]: string | number } = {  };
+    protected headers: { [key: string]: string } = { 
+        'X-YouTube-Client-Name': '1',
+        'X-YouTube-Client-Version': '2.20201125.03.02'
+    };
     protected baseUrl: string;
     protected findInitialDataFromHtml: boolean;
 
@@ -38,7 +41,7 @@ export default abstract class FeedExtractor<T> {
         this.user = user;
         this.findInitialDataFromHtml = findInitialDataFromHtml;
         this._fetch = fetch;
-        this.headers = { ...this.headers, headers };
+        this.headers = { ...this.headers, ...headers };
     }
 
     abstract parse(text: string, iteration ?: number): ParserResponse<T>;
