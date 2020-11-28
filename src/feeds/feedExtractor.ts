@@ -59,6 +59,8 @@ export default abstract class FeedExtractor<T> {
             ...this.headers
         }
 
+        console.log(headers);
+
         try {
             const responseText = await this._fetch(url, { headers })
                 .then(res => res.text());
@@ -75,7 +77,9 @@ export default abstract class FeedExtractor<T> {
 
         if (this.iteration === 0) { // html page, i.e. feed/{something}
             try {
-                this.headers['X-Youtube-Identity-Token'] = this.getIdentityToken(responseText);
+                const identityToken = JSON.parse(`"${this.getIdentityToken(responseText)}"`)
+                this.headers['X-Youtube-Identity-Token'] = identityToken;
+                //this.headers['X-Youtube-Identity-Token'] = this.getIdentityToken(responseText);
 
             } catch (err) {  }
 
