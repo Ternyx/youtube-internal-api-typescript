@@ -17,7 +17,7 @@ export default class SubscriptionFeed<T extends SubscriptionFeedResponse> extend
         });
     }
 
-    parse(text: string, iteration?: number): ParserResponse<T> {
+    protected parse(text: string, iteration?: number): ParserResponse<T> {
         const json = JSON.parse(text);
         let res;
 

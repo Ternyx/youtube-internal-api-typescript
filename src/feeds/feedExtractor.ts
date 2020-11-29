@@ -44,7 +44,7 @@ export default abstract class FeedExtractor<T> {
         this.headers = { ...this.headers, ...headers };
     }
 
-    abstract parse(text: string, iteration ?: number): ParserResponse<T>;
+    protected abstract parse(text: string, iteration ?: number): ParserResponse<T>;
 
     async fetch(): Promise<T[]> {
         const url = (this.iteration === 0) ? this.baseUrl : this.nextContUrl;
