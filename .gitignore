@@ -3,3 +3,8 @@ package-lock.json
 dist/
 .env
 .env-test
+
+src/
+jest.config.js
+tsconfig.json
+tsconfig.build.json
