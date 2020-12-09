@@ -21,8 +21,12 @@ interface FeedExtractorOptions {
     headers?: {[key: string]: string };
 }
 
+export interface FetchResponse<T> {
+    nextContUrl: string | null,
+    data: T[];
+}
+
 export default abstract class FeedExtractor<T> {
-    private nextContUrl = "";
     private iteration = 0;
     private _fetch: typeof nodeFetch;
     private user: User;
@@ -34,8 +38,6 @@ export default abstract class FeedExtractor<T> {
     protected baseUrl: string;
     protected findInitialDataFromHtml: boolean;
 
-    public content: T[] = [];
-
     constructor({ baseUrl, user, findInitialDataFromHtml = true, fetch = nodeFetch, headers }: FeedExtractorOptions) {
         this.baseUrl = baseUrl;
         this.user = user;
@@ -46,12 +48,16 @@ export default abstract class FeedExtractor<T> {
 
     protected abstract parse(text: string, iteration ?: number): ParserResponse<T>;
 
-    async fetch(): Promise<T[]> {
-        const url = (this.iteration === 0) ? this.baseUrl : this.nextContUrl;
+    async fetch(nextContUrl?: string): Promise<FetchResponse<T>> {
+        const url = (nextContUrl) ? nextContUrl : this.baseUrl;
 
         if (!url) {
             console.debug("Empty feed url. No more continuations?")
-            return [];
+
+            return {
+                nextContUrl: null,
+                data: []
+            }
         }
 
         const headers = {
@@ -70,7 +76,7 @@ export default abstract class FeedExtractor<T> {
         }
     }
 
-    private processFetchResponse(responseText: string): T[] {
+    private processFetchResponse(responseText: string): FetchResponse<T> {
         let validatedResponseText: string = responseText;
 
         if (this.iteration === 0) { // html page, i.e. feed/{something}
@@ -91,11 +97,14 @@ export default abstract class FeedExtractor<T> {
             continuation = this.getContinuation(validatedResponseText);
         }
 
-        this.nextContUrl = this.getContinuationUrl(continuation);
-
         ++this.iteration;
-        this.content.push(...content);
-        return content;
+
+        const nextContUrl = this.getContinuationUrl(continuation);
+
+        return {
+            nextContUrl,
+            data: content
+        }
     }
 
     protected getIdentityToken(string: string) {
@@ -125,13 +134,13 @@ export default abstract class FeedExtractor<T> {
 
     protected getContinuationUrl(continuations: Continuation) {
         if (!continuations || !continuations.nextContinuationData) {
-            return "";
+            return null;
         }
 
         const { continuation, clickTrackingParams } = continuations.nextContinuationData;
 
         if (!continuation || !clickTrackingParams) {
-            return "";
+            return null;
         }
 
         return `https://www.youtube.com/browse_ajax?ctoken=${continuation}&continuation=${continuation}&itct=${clickTrackingParams}`;

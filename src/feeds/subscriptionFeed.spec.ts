@@ -12,11 +12,9 @@ testIfHasCookie('Fetch subscription feed (subfeed has to have at least > 50 vide
     const user = new User(youtubeCookie);
     const subFeed = new SubscriptionFeed({ user });
 
-    const htmlRes = await subFeed.fetch();
-    expect(htmlRes.length).toBeGreaterThan(0);
+    const { nextContUrl, data } = await subFeed.fetch();
+    expect(data.length).toBeGreaterThan(0);
 
-    const browseAjaxRes = await subFeed.fetch();
-    expect(browseAjaxRes.length).toBeGreaterThan(0);
-
-    expect(subFeed.content.length).toEqual(htmlRes.length + browseAjaxRes.length);
+    const browseAjaxRes = await subFeed.fetch(nextContUrl);
+    expect(browseAjaxRes.data.length).toBeGreaterThan(0);
 });
