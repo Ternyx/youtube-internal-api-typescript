@@ -19,9 +19,12 @@ export default function youtubeUser({ userCookieString }: YoutubeOptions) {
 
 }
 
-export { 
-    SubscriptionFeed,
+export * from './user';
+export * from './video/videoExtractor';
+export * from './feeds/subscriptionFeed';
+
+export {
     User,
     VideoExtractor,
-};
-
+    SubscriptionFeed
+}
