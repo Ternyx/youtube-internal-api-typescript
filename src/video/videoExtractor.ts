@@ -79,7 +79,7 @@ export default class VideoExtractor {
 
         this.streamingDataExtractionOptions = streamingDataExtractionOptions;
         this.signatureDecoderExtractor = signatureDecoderExtractor ?? new SignatureDecoderExtractor({
-            getBaseJs: pMemoize<string[], string, string>(this.fetchBaseJs)
+            getBaseJs: pMemoize<string[], string, string>(this.fetchBaseJs.bind(this))
         });
         this.user = user;
     }
