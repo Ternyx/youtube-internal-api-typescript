@@ -27,7 +27,6 @@ export interface FetchResponse<T> {
 }
 
 export default abstract class FeedExtractor<T> {
-    private iteration = 0;
     private _fetch: typeof nodeFetch;
     private user: User;
 
@@ -69,35 +68,30 @@ export default abstract class FeedExtractor<T> {
             const responseText = await this._fetch(url, { headers })
                 .then(res => res.text());
 
-            return this.processFetchResponse(responseText);
+            return this.processFetchResponse(responseText, url === this.baseUrl);
         } catch (err) {
             console.error(`Failed to fetch feed from ${url}`);
             throw err;
         }
     }
 
-    private processFetchResponse(responseText: string): FetchResponse<T> {
+    private processFetchResponse(responseText: string, baseUrlRequest: boolean): FetchResponse<T> {
         let validatedResponseText: string = responseText;
 
-        if (this.iteration === 0) { // html page, i.e. feed/{something}
-            try {
-                const identityToken = JSON.parse(`"${this.getIdentityToken(responseText)}"`)
-                this.headers['X-Youtube-Identity-Token'] = identityToken;
+        try {
+            const identityToken = JSON.parse(`"${this.getIdentityToken(responseText)}"`)
+            this.headers['X-Youtube-Identity-Token'] = identityToken;
+        } catch (err) {  }
 
-            } catch (err) {  }
+        if (baseUrlRequest && this.findInitialDataFromHtml) {
+            validatedResponseText = this.getInitialData(responseText);
+        }
 
-            if (this.findInitialDataFromHtml) {
-                validatedResponseText = this.getInitialData(responseText);
-            }
-        } 
-
-        let { content, continuation } = this.parse(validatedResponseText, this.iteration);
+        let { content, continuation } = this.parse(validatedResponseText);
 
         if (!continuation) { // manually find continuations
             continuation = this.getContinuation(validatedResponseText);
         }
-
-        ++this.iteration;
 
         const nextContUrl = this.getContinuationUrl(continuation);
 
