@@ -22,18 +22,8 @@ class SubscriptionFeed extends feedExtractor_1.default {
             const columnBrowswer = cont.twoColumnBrowseResultsRenderer || cont.singleColumnBrowseResultsRenderer;
             res = columnBrowswer.tabs[0].tabRenderer.content.sectionListRenderer;
         }
-        const keySet = ['videoId', 'thumbnail', 'title', 'shortBylineText'];
         const contentArr = res.contents[0].itemSectionRenderer.contents[0].shelfRenderer.content.gridRenderer.items;
-        const videoArr = contentArr
-            .map(({ gridVideoRenderer }) => keySet.reduce((obj, key) => {
-            if (gridVideoRenderer[key]) {
-                obj[key] = gridVideoRenderer[key];
-            }
-            else {
-                console.debug(`Missing key${key}`);
-            }
-            return obj;
-        }, {}));
+        const videoArr = contentArr.map(({ gridVideoRenderer }) => gridVideoRenderer);
         return {
             content: videoArr,
             continuation: res.continuations[0]

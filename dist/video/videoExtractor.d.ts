@@ -44,20 +44,7 @@ export default class VideoExtractor {
     private signatureDecoderExtractor;
     private user;
     constructor(options?: VideoExtractorOptions);
-    extractVideo(stringContainingId: string, streamingDataExtractionOptions?: StreamingDataExtractionOptions): Promise<{
-        streamingData: {
-            formats: any;
-            adaptiveFormats: any;
-            expiresInSeconds: string;
-            dashManifestUrl?: string;
-        };
-        playabilityStatus: import("./types/youtubePlayerConfig").PlayabilityStatus;
-        captions: import("./types/youtubePlayerConfig").Captions;
-        videoDetails: import("./types/youtubePlayerConfig").VideoDetails;
-        playerConfig: import("./types/youtubePlayerConfig").PlayerConfig;
-        trackingParams: string;
-        messages: import("./types/youtubePlayerConfig").Message[];
-    }>;
+    extractVideo(stringContainingId: string, streamingDataExtractionOptions?: StreamingDataExtractionOptions): Promise<PlayerResponse>;
     private getHeaders;
     protected extractStreamingData({ html, playerResponse, streamingDataExtractionOptions }: ExtractStreamingData): Promise<{
         formats: any;
