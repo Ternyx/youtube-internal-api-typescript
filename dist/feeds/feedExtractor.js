@@ -17,7 +17,6 @@ const regex_1 = require("../utils/regex");
 ;
 class FeedExtractor {
     constructor({ baseUrl, user, findInitialDataFromHtml = true, fetch = node_fetch_1.default, headers }) {
-        this.iteration = 0;
         this.headers = {
             'X-YouTube-Client-Name': '1',
             'X-YouTube-Client-Version': '2.20201125.03.02'
@@ -42,7 +41,7 @@ class FeedExtractor {
             try {
                 const responseText = yield this._fetch(url, { headers })
                     .then(res => res.text());
-                return this.processFetchResponse(responseText);
+                return this.processFetchResponse(responseText, url === this.baseUrl);
             }
             catch (err) {
                 console.error(`Failed to fetch feed from ${url}`);
@@ -50,23 +49,20 @@ class FeedExtractor {
             }
         });
     }
-    processFetchResponse(responseText) {
+    processFetchResponse(responseText, baseUrlRequest) {
         let validatedResponseText = responseText;
-        if (this.iteration === 0) { // html page, i.e. feed/{something}
-            try {
-                const identityToken = JSON.parse(`"${this.getIdentityToken(responseText)}"`);
-                this.headers['X-Youtube-Identity-Token'] = identityToken;
-            }
-            catch (err) { }
-            if (this.findInitialDataFromHtml) {
-                validatedResponseText = this.getInitialData(responseText);
-            }
+        try {
+            const identityToken = JSON.parse(`"${this.getIdentityToken(responseText)}"`);
+            this.headers['X-Youtube-Identity-Token'] = identityToken;
         }
-        let { content, continuation } = this.parse(validatedResponseText, this.iteration);
+        catch (err) { }
+        if (baseUrlRequest && this.findInitialDataFromHtml) {
+            validatedResponseText = this.getInitialData(responseText);
+        }
+        let { content, continuation } = this.parse(validatedResponseText);
         if (!continuation) { // manually find continuations
             continuation = this.getContinuation(validatedResponseText);
         }
-        ++this.iteration;
         const nextContUrl = this.getContinuationUrl(continuation);
         return {
             nextContUrl,

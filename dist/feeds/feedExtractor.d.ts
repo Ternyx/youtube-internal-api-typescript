@@ -24,7 +24,6 @@ export interface FetchResponse<T> {
     data: T[];
 }
 export default abstract class FeedExtractor<T> {
-    private iteration;
     private _fetch;
     private user;
     protected headers: {

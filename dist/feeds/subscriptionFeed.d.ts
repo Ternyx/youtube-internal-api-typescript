@@ -8,5 +8,5 @@ export interface SubscriptionFeedOptions {
 }
 export default class SubscriptionFeed<T extends any> extends FeedExtractor<T> {
     constructor(options: SubscriptionFeedOptions);
-    protected parse(text: string, iteration?: number): ParserResponse<T>;
+    protected parse(text: string): ParserResponse<T>;
 }

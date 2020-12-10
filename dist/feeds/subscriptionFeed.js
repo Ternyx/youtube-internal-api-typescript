@@ -8,7 +8,7 @@ class SubscriptionFeed extends feedExtractor_1.default {
     constructor(options) {
         super(Object.assign({ baseUrl: 'https://www.youtube.com/feed/subscriptions?flow=1' }, options));
     }
-    parse(text, iteration) {
+    parse(text) {
         const json = JSON.parse(text);
         let res;
         if (Array.isArray(json)) {
