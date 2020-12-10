@@ -84,7 +84,7 @@ export default class VideoExtractor {
         this.user = user;
     }
 
-    async extractVideo(stringContainingId: string, streamingDataExtractionOptions?: StreamingDataExtractionOptions) {
+    async extractVideo(stringContainingId: string, streamingDataExtractionOptions?: StreamingDataExtractionOptions): Promise<PlayerResponse> {
         const videoId = VideoExtractor.extractVideoId(stringContainingId);
         const html = await fetch(`https://www.youtube.com/watch?v=${videoId}`, { headers: this.getHeaders() })
             .then(res => res.text());
