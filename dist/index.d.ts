@@ -7,7 +7,7 @@ interface YoutubeOptions {
 export default function youtubeUser({ userCookieString }: YoutubeOptions): {
     user: User;
     videoExtractor: VideoExtractor;
-    subscriptionFeed: SubscriptionFeed<import("./feeds/types/subscriptionFeedResponse").SubscriptionFeedResponse>;
+    subscriptionFeed: SubscriptionFeed<unknown>;
 };
 export * from './user';
 export * from './video/videoExtractor';
